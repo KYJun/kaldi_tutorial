@@ -63,7 +63,7 @@ decode_tri3=0
 #decode_dnn=0
 
 ### Result
-display_result=1
+display_result=0
 
 ### Options.
 # Monophone
