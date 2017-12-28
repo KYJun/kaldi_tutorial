@@ -1,8 +1,8 @@
 #!/bin/bash
 # This script buils Korean ASR model based on kaldi toolkit.
-# 														InGu, Lee & YoungJun, Kim
-# 														kimyj359@gmail.com
-# 														NAMZ & EMCS Labs
+# 											   YoungJun, Kim & InGu, Lee
+# 											   kimyj359@gmail.com / demiust@gmail.com
+# 											   NAMZ & EMCS Labs
 
 # This code trains and decodes the Korean readspeech corpus dataset with various training techniques.
 # Therefore, if anyone who would like to train their corpus dataset by running this sciprt, simply modify this script. 
@@ -13,9 +13,9 @@
 
 ### Set path and requisite variables.
 # Kaldi root: Where is your kaldi directory?
-# kaldi= (Enter your kaldi path)
+kaldi=(your kaldi path)
 # Source data: Where is your source (wavefile) data directory?
-source= ./corpus/small_krs
+source=./corpus/small_krs
 # Log file: Log file will be saved with the name set below.
 logfile=1st_test
 log_dir=log
@@ -42,9 +42,7 @@ log_dir=log
 prepare_data=1
 prepare_lm=0
 extract_train_mfcc=0
-extract_test_mfcc=0
 #extract_train_plp=0
-#extract_test_plp=0
 
 ### Training: Give 1 to activate the following steps. Give 0 to deactivate the following steps.
 train_mono=0
@@ -54,6 +52,10 @@ train_tri3=0
 #train_dnn=0
 
 ### Decoding : Give 1 to activate the following steps. Give 0 to deactivate the following steps.
+prepare_test_data=0
+extract_test_mfcc=0
+#extract_test_plp=0
+
 decode_mono=0
 decode_tri1=0
 decode_tri2=0
@@ -123,13 +125,13 @@ if [ $prepare_data -eq 1 ]; then
 	echo $log_s1 >> $log_dir/$logfile.log 
 	echo START TIME: $log_s1 | tee -a $log_dir/$logfile.log 
 
-	# Check source file is ready to be used. Does train and test folders exist inside the source folder?
-	if [ ! -d $source/train -o ! -d $source/test ] ; then
-		echo "train and test folders are not present in $source directory." || exit 1
+	# Check source file is ready to be used. Does train folder exist inside the source folder?
+	if [ ! -d $source/train -o ] ; then
+		echo "train folder is not present in $source directory." || exit 1
 	fi
 
-	# In each train and test data folder, distribute 'text', 'utt2spk', 'spk2utt', 'wav.scp', 'segments'.
-	for set in train test; do
+	# In each train data folder, distribute 'text', 'utt2spk', 'spk2utt', 'wav.scp', 'segments'.
+	for set in train; do
 		echo -e "Generating prerequisite files...\nSource directory:$source/$set" | tee -a $log_dir/$logfile.log 
 		local/krs_prep_data.sh \
 			$source/$set \
@@ -145,7 +147,38 @@ if [ $prepare_data -eq 1 ]; then
 	echo PROCESS TIME: $taken1 sec  | tee -a $log_dir/$logfile.log
 fi
 
-### Language Model
+# Prepare test_data for decoding.
+if [ $prepare_test_data -eq 1 ]; then
+        echo ====================================================================== | tee -a $log_dir/$logfile.log
+        echo "                   Test_data Preparation                                     " | tee -a $log_dir/$logfile.log
+        echo ====================================================================== | tee -a $log_dir/$logfile.log
+        start1=`date +%s`; log_s1=`date | awk '{print $4}'`
+        echo $log_s1 >> $log_dir/$logfile.log
+        echo START TIME: $log_s1 | tee -a $log_dir/$logfile.log
+
+        # Check source file is ready to be used. Does train and test folders exist inside the source folder?
+        if [ ! -d $source/test ] ; then
+                echo "test folder is not present in $source directory." || exit 1
+        fi
+
+        # In each train and test data folder, distribute 'text', 'utt2spk', 'spk2utt', 'wav.scp', 'segments'.
+        for set in test; do
+                echo -e "Preparing test set files...\nSource directory:$source/$set" | tee -a $log_dir/$logfile.log
+                local/krs_prep_data.sh \
+                        $source/$set \
+                        data/$set || exit 1
+
+                utils/validate_data_dir.sh data/$set
+                utils/fix_data_dir.sh data/$set
+        done
+
+        end1=`date +%s`; log_e1=`date | awk '{print $4}'`
+        taken1=`local/track_time.sh $start1 $end1`
+        echo END TIME: $log_e1  | tee -a $log_dir/$logfile.log
+        echo PROCESS TIME: $taken1 sec  | tee -a $log_dir/$logfile.log
+fi
+
+### LM training
 if [ $prepare_lm -eq 1 ]; then
 	echo ====================================================================== | tee -a $log_dir/$logfile.log 
 	echo "                       Language Modeling	                		  " | tee -a $log_dir/$logfile.log 
