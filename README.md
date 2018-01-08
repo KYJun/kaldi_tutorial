@@ -3,7 +3,6 @@
 
 ### NOTICE
 - kaldi tutorial directory trains Korean read-speech datasets.
-- Korean read-speech is required to run this code. Small set of Korean read-speech dataset is prepared for this tutorial. Download it from this [link](https://drive.google.com/open?id=0B9lwe_GFwe2oY196NUJ4NFlPb0k)
 - Please contact me if you have any questions.
 
 
@@ -19,6 +18,3 @@
 #### Revised
 - Name: YoungJun Kim
 - e-mail: kimyj359@gmail.com
-
-#### Download!!
-- download necessary file --> [here](https://drive.google.com/open?id=1K5Bzhbey9hDCSSGghskWiut0pTcvlJ4z) 
